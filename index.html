@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensaje del Día</title>
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .font-serif-custom {
+            font-family: 'Playfair Display', serif;
+        }
+    </style>
+</head>
+<body class="bg-stone-950 text-stone-100 min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-stone-950">
+
+    <!-- Cabecera -->
+    <header class="w-full py-6 px-8 flex justify-between items-center max-w-4xl mx-auto">
+        <span class="text-xs tracking-widest uppercase text-amber-500 font-semibold">Inspiración Diaria</span>
+        <span id="current-date" class="text-xs text-stone-400"></span>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow flex items-center justify-center px-4 py-8">
+        <div class="max-w-xl w-full text-center space-y-8 bg-stone-900/60 border border-stone-800/80 p-8 sm:p-12 rounded-3xl shadow-2xl backdrop-blur-md relative overflow-hidden">
+            
+            <!-- Detalle decorativo -->
+            <div class="absolute -top-12 -left-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="space-y-4">
+                <span class="inline-block p-3 rounded-full bg-amber-500/10 text-amber-400 mb-2">
+                    <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </span>
+                <h1 class="text-xs font-medium tracking-widest text-stone-400 uppercase">Mensaje para ti hoy</h1>
+            </div>
+
+            <!-- Contenedor del Mensaje Diario -->
+            <div class="min-h-[140px] flex items-center justify-center">
+                <p id="daily-message" class="text-2xl sm:text-3xl font-serif-custom italic text-stone-200 leading-relaxed">
+                    Cargando mensaje...
+                </p>
+            </div>
+
+            <!-- Acciones -->
+            <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button onclick="copyToClipboard()" class="w-full sm:w-auto px-6 py-3 rounded-full bg-amber-600 hover:bg-amber-500 text-stone-950 font-semibold text-sm transition-all shadow-lg shadow-amber-900/20 active:scale-95 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    Copiar Mensaje
+                </button>
+            </div>
+
+            <!-- Notificación emergente (Toast) -->
+            <div id="toast" class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-stone-800 text-stone-200 text-xs px-4 py-2 rounded-full opacity-0 pointer-events-none transition-opacity duration-300 border border-stone-700">
+                ¡Mensaje copiado al portapapeles!
+            </div>
+        </div>
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="w-full py-6 text-center text-xs text-stone-500">
+        Creado con intención y energía positiva.
+    </footer>
+
+    <!-- Lógica de selección diaria -->
+    <script>
+        // LISTA DE MENSAJES: Puedes agregar, quitar o editar los mensajes aquí fácilmente
+        const messages = [
+            "Confía en el proceso de tu propia transformación; cada paso lento sigue siendo avance.",
+            "La energía fluye hacia donde va tu atención. Elige nutrir lo que te hace bien.",
+            "Permítete soltar el control de lo que no depende de ti y abraza la paz del presente.",
+            "Tu intuición es una brújula sabia; apréndete a escuchar en silencio.",
+            "Hay magia en los nuevos comienzos; hoy es un lienzo en blanco para tu bienestar.",
+            "Cultiva la paciencia contigo mismo; las grandes flores tardan en florecer.",
+            "Haz espacio en tu día para respirar hondo y agradecer lo simple."
+        ];
+
+        // Mostrar la fecha actual formateada
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const todayStr = new Date().toLocaleDateString('es-ES', options);
+        document.getElementById('current-date').textContent = todayStr.charAt(0).toUpperCase() + todayStr.slice(1);
+
+        // Función determinista basada en la fecha (YYYY-MM-DD) para que sea el mismo mensaje todo el día
+        function getDailyIndex(maxNum) {
+            const dateObj = new Date();
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            
+            // Creamos un string numérico tipo "20261108"
+            const dateId = parseInt(`${year}${month}${day}`, 10);
+            return dateId % maxNum;
+        }
+
+        // Asignar el mensaje del día al cargar la página
+        const index = getDailyIndex(messages.length);
+        const selectedMessage = `"${messages[index]}"`;
+        document.getElementById('daily-message').textContent = selectedMessage;
+
+        // Función para copiar al portapapeles
+        function copyToClipboard() {
+            navigator.clipboard.writeText(selectedMessage).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.remove('opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('opacity-0');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
